@@ -1,0 +1,95 @@
+// Year: 2023
+// Version: 1
+// Coded by: Michael Landbo
+// License: Free
+
+// Description:
+// An example of code displaying "pascal data" from an MPS20N0040D pressure sensor on an Arduino Nano 33 IOT via the Arduino IOT Cloud Dashboard
+ 
+// Remember to: 
+// 1. Adapt the WiFi and Arduino IOT Cloud configuration to your setup
+// Always check for any warnings or error messages displayed in the Arduino console window when you run the code. 
+// You can also customize the tolerance, timeout and readings variables to match your needs.
+
+// Technical:
+// (how) Board: Arduino Nano 33 IOT
+// (what) Sensor: MPS20N0040D (pressure sensor)
+// (where) Service: Arduino IOT Cloud Dashboard
+
+// Code:
+
+// Load Libs
+#include <Arduino_MKRENV.h>
+#include <Arduino_MKRWIFI1010.h>
+
+// Define the pin number for the MPS20N0040D sensor
+#define MPS20N0040D_PIN A0
+
+// Define variables for WiFi configuration
+const char* ssid = "your-ssid";
+const char* password = "your-password";
+
+// Define variables for Arduino IOT Cloud configuration
+const char* deviceId = "your-device-id";
+const char* deviceSecret = "your-device-secret";
+
+// Define a variable to store the pressure from the MPS20N0040D sensor
+float pressure;
+
+// Define an offset that adjusts the print display
+float offset = 0;
+
+// Define a "margin of error" or "tolerance" variable that specifies a range within which pressure data must be to be valid
+float tolerance = 0.1;
+
+// Define a "timeout" variable that specifies how long to pass before an error occurs if no valid data is received from the sensor
+int timeout = 1000; // 1 second
+
+// Define a variable to count the number of readings from the sensor
+int readings = 10;
+
+void setup() {
+  // Set the WiFi configuration
+  Arduino_MKRWIFI1010.begin(ssid, password);
+  Arduino_MKRWIFI1010.connect();
+
+  // Set the Arduino IOT Cloud configuration
+  Arduino_MKRENV.begin(deviceId, deviceSecret);
+}
+
+void loop() {
+  // Set a counter to read from the sensor to "0"
+  int count = 0;
+
+  // Set a variable to keep the sum of displayed values at "0"
+  float sum = 0;
+
+  // Read from the sensor several times and calculate the average of the read values
+  while (count < readings) {
+    // Read from the sensor
+    float reading = analogRead(MPS20N0040D_PIN) * (5.0 / 1023.0); // See in-depht info about the math behind ADC converts
+
+    // Add the reading to the total
+    sum += reading;
+
+    // Wait a little while before reading again
+    delay(timeout / readings);
+
+    // Count up the counter
+    count++;
+  }
+
+  // Calculate the average of read values
+  pressure = sum / readings;
+
+  // Add offset to the pressure displayed
+  pressure += offset;
+
+  // If the pressure is within the tolerance range, send data to the Arduino IOT Cloud
+  if (pressure >= -tolerance && pressure <= tolerance) {
+    Arduino_MKRENV.send("pascal data", pressure);
+  }
+
+  // Wait 10 seconds before it retransmits
+  delay(10000);
+}
