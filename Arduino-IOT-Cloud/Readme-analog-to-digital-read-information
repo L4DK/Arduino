@@ -1,0 +1,10 @@
+The AnalogRead() function on the Arduino returns a value in the range 0-1023 that represents the percentage voltage measured on the specific analog pin. 
+This range represents a voltage range of 0-5 volts, as the Arduino Nano 33 IOT has an analog-to-digital converter (ADC) with a voltage measurement range of 0-5 volts.
+
+To convert the measured percentage voltage to the actual voltage in volts measured on the sensor, multiply the measured value by (5.0 / 1023.0). 
+This allows the actual voltage to be calculated from the percentage voltage being measured.
+
+Example: If analogRead() returns a value of 512, the actual voltage will be (512 * (5.0 / 1023.0)) = 2.5 volts.
+
+If you wish to measure a voltage range other than 0-5 volts, adjust the (5.0 / 1023.0) expression to match the desired voltage range. 
+For example, if you want to measure a voltage range of 0-10 volts, change the expression to (10.0 / 1023.0).
